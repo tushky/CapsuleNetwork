@@ -34,10 +34,18 @@ model = CapsuleNetwork(dim_primary_caps=8,
                         num_primary_caps=32, 
                         dim_caps=16, num_caps=10)
 
+tensorbord_callbacks = tf.keras.callbacks.TensorBoard(
+    log_dir='./logs', histogram_freq=0, write_graph=True,
+    write_images=True, update_freq='batch')
+
 model.compile(
     optimizer=tf.keras.optimizers.Adam(learning_rate=0.001),
     loss=MarginLoss(),
     metrics = tf.keras.metrics.CategoricalAccuracy()
 )
+#print(x.shape)
 
-model.fit(train_dataset.take(1), epochs=10, validation_data=test_dataset.take(1))
+model.fit(train_dataset,
+            epochs=10, 
+            validation_data=test_dataset,
+            callbacks=[tensorbord_callbacks], batch_size=32)

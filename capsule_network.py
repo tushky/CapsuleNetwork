@@ -26,6 +26,7 @@ class CapsuleNetwork(tf.keras.Model):
         self.compiled_loss = loss
         self.compiled_metrics = metrics
         self.mse = tf.keras.losses.MSE
+        self.loss_tracker = tf.keras.metrics.Mean(name='margin_loss')
 
     def test_step(self, data):
 
@@ -37,7 +38,8 @@ class CapsuleNetwork(tf.keras.Model):
         loss = self.compiled_loss(y_true, y_pred)
         
         # add current loss to loss tracker
-        self.compiled_loss.update_state(loss)
+        #self.compiled_loss.update_state(loss)
+        self.loss_tracker.update_state(loss)
 
         # add current accuracy to accuracy tracker
         self.compiled_metrics.update_state(y_true, tf.norm(y_pred, axis=-1))
@@ -73,10 +75,14 @@ class CapsuleNetwork(tf.keras.Model):
         # update trainable parameters
         self.optimizer.apply_gradients(zip(gradients, self.trainable_weights))
 
-        self.compiled_loss.update_state(loss)
+        self.loss_tracker.update_state(loss)
 
         # update training accuracy
         self.compiled_metrics.update_state(y_true, tf.norm(y_pred, axis=-1))
+
+        tf.summary.image(data=tf.reshape(x_pred, [-1, 28, 28, 1]),
+                        name='reconstucted_images',
+                        max_outputs=1000)
         
         # return current loss and accuracy. It will be displayed next to progress bar
         return {m.name : m.result() for m in self.metrics}
@@ -86,4 +92,4 @@ class CapsuleNetwork(tf.keras.Model):
     def metrics(self):
         # set metrics we want to track so that i will be displyed next to training progress bar
         # keras will call result() on all metrics
-        return [self.compiled_loss, self.compiled_metrics]
+        return [self.loss_tracker, self.compiled_metrics]

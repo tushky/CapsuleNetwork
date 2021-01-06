@@ -13,13 +13,13 @@ class CapsuleLayer(tf.keras.layers.Layer):
         self.routing_iter = routing_iter
     
     def build(self, input_shape):
-
+        #print(input_shape)
         # Create W matrix for all pairs of primary and digit capsules
         # shape (1, 1152, 10, 16, 8)
         self.weight = self.add_weight("weight", shape=[1, input_shape[1], 
                                                      self.num_capsule, 
                                                      self.dim_capsule,
-                                                     input_shape[3]
+                                                     input_shape[2]
                                                      ],
                                     initializer="random_normal",
                                     trainable = True)
@@ -30,8 +30,6 @@ class CapsuleLayer(tf.keras.layers.Layer):
         # shape [None, 1152, 8] -> [None, 1152, 1, 8, 1]
         x = tf.expand_dims(x, axis = 2)
         x = tf.expand_dims(x, axis=-1)
-
-
         # compute candidate capsule for all pair of primary and digit capsule
         #x : [None, 1152, 1, 8, 1], weight : [1, 1152, 10, 16, 8] -> u : [None, 1152, 10, 16, 1]
         u = tf.squeeze(tf.matmul(self.weight, x), axis=-1)
